@@ -11,6 +11,7 @@
  *  \param row Row to draw to
  *  \param colorBGR Color of pixel in BGR
  */
+
 void drawPixel(u_char col, u_char row, u_int colorBGR) 
 {
   lcd_setArea(col, row, col, row);
