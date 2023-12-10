@@ -4,9 +4,10 @@
 #include "lcdutils.h"
 #include "lcddraw.h"
 
-#DEFINE WIDTH 18
+#define MAX_LINES 19 // total number of lines in your ASCII art
+#define MAX_WIDTH 52 // maximum width of each line, including the null terminator
 
-char ascii_art[WIDTH] = {
+char ascii_art[MAX_LINES][MAX_WIDTH] = {
     "                                                     ", // 51 spaces
     "       ---_ ......._-_--.                            ",
     "      (|\\ /      / /| \\  \\                        ",
@@ -25,14 +26,16 @@ char ascii_art[WIDTH] = {
     "     '  `             \\ _ _ \\                      ",
     "                       \\_                           ",
     "                                                     ", // 51 spaces
-    "                                                     " // 51 spaces
-    // ... (add more rows with 51 characters each, or fill with spaces)
+    "                                                     "  // 51 spaces
 };
 
-void draw_ascii(){
-	for (int x = 0; x < WIDTH; ++x) {
-		drawString5x7(x, 0 + x, ascii_art[x], COLOR_GREEN, COLOR_BLACK);
-	}
+
+void draw_ascii() {
+    for (int line = 0; line < MAX_LINES; ++line) {
+        // Assuming the function drawString5x7 takes parameters in the order:
+        // x position, y position, string to draw, foreground color, background color
+        drawString5x7(0, line * 7, ascii_art[line], COLOR_GREEN, COLOR_BLACK);
+    }
 }
 
 /** Draw single pixel at x,row 
