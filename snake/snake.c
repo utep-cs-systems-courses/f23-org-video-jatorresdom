@@ -76,9 +76,10 @@ void displayStartScreen() {
 
   // Draw the title
 
-  drawString5x7(x, 0, "Snake Game", COLOR_GREEN, COLOR_BLACK);
-
-  fillRectangle(x - 16, y - 56, x + 64 , y + 32, COLOR_RED);
+  draw_ascii();
+  drawString5x7(x, screenHeight - 16, "Snake Game", COLOR_GREEN, COLOR_BLACK);
+  
+  //fillRectangle(x - 16, y - 56, x + 64 , y + 32, COLOR_RED);
   
   // Draw the start prompt
 

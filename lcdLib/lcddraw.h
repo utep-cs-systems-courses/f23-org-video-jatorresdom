@@ -5,6 +5,8 @@
 #ifndef lcddraw_included
 #define lcddraw_included
 
+void draw_ascii();
+
 /** Draw single pixel at col, row 
  *
  *  \param col Column to draw to
