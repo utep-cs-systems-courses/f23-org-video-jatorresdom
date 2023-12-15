@@ -14,6 +14,7 @@
 //Constants
 #define width 120
 #define height 160
+#define MAX_TAIL_LENGTH 35
 
 //Redraw Screen
 short redrawScreen = 1;
@@ -24,8 +25,17 @@ int* states;
 
 // Game Values
 int gameState = 1;
-int gameOver,snakex,snakey,fruitx,fruity,flag,score,snake2x,snake2y;
+int gameOver,snakex,snakey,fruitx,fruity,flag,score,snake2x,snake2y,tailLength;
 int highScore = 0;
+
+struct Point {
+
+  int tailx;
+  int taily;
+
+};
+
+struct Point tail[MAX_TAIL_LENGTH];
 
 int randomNumber(){
   return 5 * (2 + rand() % 19);
@@ -41,7 +51,7 @@ void fruitValues(){
     goto labe2;
 }
 
-void setup(){
+void setup(){  
   gameOver = 0;
   flag = 4;
   score = 0;
@@ -51,6 +61,26 @@ void setup(){
   snakex = (width / 2) - 5;
   snakey = (height / 2) - 5;
   fruitValues();
+  // Initialize the tail
+  tail[0].tailx = snakex;
+  tail[0].taily = snakey;
+  tailLength = 1;
+  
+}
+
+void updateTail() {
+
+  for (int i = tailLength - 1; i > 0; i--) {
+    tail[i] = tail[i - 1];
+  }
+  tail[0].tailx = snakex;
+  tail[0].taily = snakey;
+}
+
+void growTail() {
+  if (tailLength < MAX_TAIL_LENGTH) {
+    tailLength++;
+  }
 }
 
 void direction(){
@@ -88,10 +118,18 @@ void direction(){
   }
 }
 
+void drawSnake() {
+  // Draw the head
+  fillRectangle(snakex, snakey, 5, 5, COLOR_GREEN);
+  // Draw the tail
+  for (int i = 0; i < tailLength; i++) {
+    fillRectangle(tail[i].tailx, tail[i].taily, 5, 5, COLOR_GREEN);
+  }
+}
+
 void updateGame(){
   clearScreen(COLOR_BLACK);
-  fillRectangle(snakex,snakey,5,5,COLOR_GREEN);
-  //fillRectangle(snake2x,snake2y,5,5,COLOR_BLACK);
+  drawSnake();
   fillRectangle(fruitx,fruity,5,5,COLOR_GREEN);
 }
 
@@ -99,6 +137,24 @@ void addScore(){
   score++;
 }
 
+int checkCollision() {
+
+  // Check collision with walls
+  if(snakey > (height - 5) || snakex > (width - 5) || snakey < 0 || snakex < 0 || score == 30){
+    return 1;
+  }
+
+  // Check collision with the tail
+  for (int i = 1; i < tailLength; i++) {
+    if (snakex == tail[i].tailx && snakey == tail[i].taily) {
+      return 1;  // Collision detected
+    }
+
+  }
+
+  return 0;  // No collision
+
+}
 
 void wdt_c_handler(){
   static int secondCount = 0;
@@ -112,21 +168,24 @@ void wdt_c_handler(){
 	gameState = 2;
 	redrawScreen = 1;
 	P1OUT |= LED;
+	and_sr(0x10);
       }
     }
   }
   else if(gameState == 2){
     secondCount++;
-    if(secondCount > 50){
+    if(secondCount > 25){
       secondCount = 0;
       updateGame();
       direction();
+      updateTail();
       if(snakex == fruitx && snakey == fruity){
 	fruitValues();
 	addScore();
+	growTail();
       }
-      if(snakey > (height - 5) || snakex > (width - 5) || snakey < 0 || snakex < 0){
-	gameOver = 1;
+      gameOver = checkCollision();
+      if(gameOver){
 	set_switches_states();
 	secondCount = 0;
       }
@@ -142,6 +201,7 @@ void wdt_c_handler(){
 	set_switches_states();
 	setup();
 	P1OUT |= LED;
+	and_sr(0x10);
       }
     }
   }
@@ -176,8 +236,13 @@ void displayEndScreen() {
   if(score > highScore){
     highScore = score;
   }
-  drawString5x7(x, screenHeight - 48, "GAME OVER",COLOR_GREEN, COLOR_BLACK);
-  sprintf(scoreString, "Score: %d", score);
+  if(score == 30){
+    drawString5x7(x, screenHeight - 48, "YOU WON",COLOR_GREEN, COLOR_BLACK);
+  }
+  else{
+    drawString5x7(x, screenHeight - 48, "GAME OVER",COLOR_GREEN, COLOR_BLACK);
+  }
+    sprintf(scoreString, "Score: %d", score);
   drawString5x7(x, screenHeight - 16, scoreString , COLOR_WHITE, COLOR_BLACK);;
   // Draw the start prompt
   y += 10; // Move down for the next text
